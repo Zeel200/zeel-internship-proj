@@ -8,7 +8,9 @@ const TopSellers = () => {
   useEffect(() => {
     const fetchTopSellers = async () => {
       try {
-        const response = await fetch("https://us-central1-nft-cloud-functions.cloudfunctions.net/topSellers");
+        const response = await fetch(
+          "https://us-central1-nft-cloud-functions.cloudfunctions.net/topSellers"
+        );
         const data = await response.json();
         setTopSellers(data);
       } catch (error) {
@@ -37,7 +39,7 @@ const TopSellers = () => {
             ) : (
               <ol className="author_list">
                 {topSellers.map((seller, index) => (
-                  <li key={index}>
+                  <li key={index} data-aos="zoom-in">
                     <div className="author_list_pp">
                       <Link to={`/author/${seller.authorId}`}>
                         <img
@@ -49,7 +51,9 @@ const TopSellers = () => {
                       </Link>
                     </div>
                     <div className="author_list_info">
-                      <Link to={`/author/${seller.authorId}`}>{seller.authorName}</Link>
+                      <Link to={`/author/${seller.authorId}`}>
+                        {seller.authorName}
+                      </Link>
                       <span>{seller.price} ETH</span>
                     </div>
                   </li>

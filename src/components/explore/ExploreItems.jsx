@@ -4,17 +4,21 @@ import { Link } from "react-router-dom";
 const ExploreItems = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await fetch(`https://us-central1-nft-cloud-functions.cloudfunctions.net/explore?page=${page}`);
+        const response = await fetch(
+          `https://us-central1-nft-cloud-functions.cloudfunctions.net/explore?page=1`
+        );
         const data = await response.json();
-        setItems((prevItems) => [...prevItems, ...data.map((item) => ({
-          ...item,
-          timer: item.expiryDate - Math.floor(Date.now() / 1000),
-        }))]);
+        setItems(
+          data.map((item) => ({
+            ...item,
+            timer: item.expiryDate - Math.floor(Date.now() / 1000),
+          }))
+        );
       } catch (error) {
         console.error("Error fetching explore items:", error);
       } finally {
@@ -23,34 +27,68 @@ const ExploreItems = () => {
     };
 
     fetchItems();
-  }, [page]);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setItems((prevItems) =>
-        prevItems.map((item) => {
-          const remainingTime = Math.max(item.expiryDate - 1, 0);
-          return { ...item, timer: remainingTime };
-        })
+        prevItems.map((item) => ({
+          ...item,
+          timer: Math.max(item.timer - 1, 0),
+        }))
       );
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [items]);
+  }, []);
 
   const formatTime = (seconds) => {
-    const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
-    const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-    const secs = String(seconds % 60).padStart(2, '0');
+    const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+    const secs = String(seconds % 60).padStart(2, "0");
     return `${hrs}:${mins}:${secs}`;
-  };
-
-  const handleLoadMore = () => {
-    setPage((prevPage) => prevPage + 1);
   };
 
   return (
     <>
+      <style>
+        {`
+          .skeleton-item {
+            background: #ddd;
+            height: 200px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite linear;
+          }
+
+          .skeleton-title {
+            height: 20px;
+            width: 80%;
+            margin: 10px auto;
+            border-radius: 5px;
+          }
+
+          .skeleton-img {
+            width: 100%;
+            height: 150px;
+            border-radius: 10px;
+          }
+
+          @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+        `}
+      </style>
+
       <div>
         <select id="filter-items" defaultValue="">
           <option value="">Default</option>
@@ -59,27 +97,57 @@ const ExploreItems = () => {
           <option value="likes_high_to_low">Most liked</option>
         </select>
       </div>
+
       <div className="row">
-        {loading && items.length === 0
-          ? new Array(8).fill(0).map((_, index) => <div key={index} className="skeleton-item">Loading...</div>)
-          : items.map((item, index) => (
+        {loading
+          ? new Array(4).fill(0).map((_, index) => (
+              <div key={index} className="col-lg-3 col-md-6 col-sm-6 col-xs-12">
+                <div className="skeleton skeleton-item">
+                  <div className="skeleton-img"></div>
+                  <div className="skeleton-title"></div>
+                </div>
+              </div>
+            ))
+          : items.slice(0, showMore ? 8 : 4).map((item, index) => (
               <div
                 key={index}
                 className="d-item col-lg-3 col-md-6 col-sm-6 col-xs-12"
-                style={{ display: "block" }}
+                style={{ display: "block", position: "relative" }}
               >
                 <div className="nft__item">
                   <div className="author_list_pp">
                     <Link to={`/author/${item.authorId}`}>
-                      <img className="lazy" src={item.authorImage} alt={item.authorName} />
+                      <img
+                        className="lazy"
+                        src={item.authorImage}
+                        alt={item.authorName}
+                      />
                       <i className="fa fa-check"></i>
                     </Link>
                   </div>
-                  <div className="de_countdown">{formatTime(item.expiryDate)}</div>
+                  <div
+                    className="countdown-timer"
+                    style={{
+                      position: "absolute",
+                      top: "10px",
+                      right: "10px",
+                      padding: "5px 10px",
+                      borderRadius: "10px",
+                      fontSize: "14px",
+                      fontWeight: "bold",
+                      color: "#333",
+                    }}
+                  >
+                    {formatTime(item.timer)}
+                  </div>
 
                   <div className="nft__item_wrap">
                     <Link to={`/item-details/${item.nftId}`}>
-                      <img src={item.nftImage} className="lazy nft__item_preview" alt={item.title} />
+                      <img
+                        src={item.nftImage}
+                        className="lazy nft__item_preview"
+                        alt={item.title}
+                      />
                     </Link>
                   </div>
 
@@ -97,9 +165,14 @@ const ExploreItems = () => {
               </div>
             ))}
       </div>
+
       <div className="col-md-12 text-center">
-        {!loading && (
-          <button id="loadmore" className="btn-main lead" onClick={handleLoadMore}>
+        {!loading && !showMore && items.length > 4 && (
+          <button
+            id="loadmore"
+            className="btn-main lead"
+            onClick={() => setShowMore(true)}
+          >
             Load more
           </button>
         )}
