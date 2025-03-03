@@ -13,37 +13,33 @@ const ExploreItems = () => {
           `https://us-central1-nft-cloud-functions.cloudfunctions.net/explore?page=1`
         );
         const data = await response.json();
-        setItems(
-          data.map((item) => ({
-            ...item,
-            timer: item.expiryDate - Math.floor(Date.now() / 1000),
-          }))
-        );
+        const filteredItems = data.filter(item => item.expiryDate > Math.floor(Date.now() / 1000));
+        setItems(filteredItems);
       } catch (error) {
         console.error("Error fetching explore items:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchItems();
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setItems((prevItems) =>
-        prevItems.map((item) => ({
-          ...item,
-          timer: Math.max(item.timer - 1, 0),
-        }))
+        prevItems
+          .map((item) => ({
+            ...item,
+            timer: Math.max(item.expiryDate - Math.floor(Date.now() / 1000), 0),
+          }))
+          .filter(item => item.timer > 0)
       );
     }, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
   const formatTime = (seconds) => {
-    const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const hrs = String(Math.min(99, Math.floor(seconds / 3600))).padStart(2, "0");
     const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
     const secs = String(seconds % 60).padStart(2, "0");
     return `${hrs}:${mins}:${secs}`;
@@ -51,44 +47,6 @@ const ExploreItems = () => {
 
   return (
     <>
-      <style>
-        {`
-          .skeleton-item {
-            background: #ddd;
-            height: 200px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .skeleton {
-            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite linear;
-          }
-
-          .skeleton-title {
-            height: 20px;
-            width: 80%;
-            margin: 10px auto;
-            border-radius: 5px;
-          }
-
-          .skeleton-img {
-            width: 100%;
-            height: 150px;
-            border-radius: 10px;
-          }
-
-          @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-          }
-        `}
-      </style>
-
       <div>
         <select id="filter-items" defaultValue="">
           <option value="">Default</option>
@@ -125,21 +83,29 @@ const ExploreItems = () => {
                       <i className="fa fa-check"></i>
                     </Link>
                   </div>
-                  <div
-                    className="countdown-timer"
-                    style={{
-                      position: "absolute",
-                      top: "10px",
-                      right: "10px",
-                      padding: "5px 10px",
-                      borderRadius: "10px",
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                      color: "#333",
-                    }}
-                  >
-                    {formatTime(item.timer)}
-                  </div>
+                  {item.timer > 0 && (
+                    <div
+                      className="countdown-timer"
+                      style={{
+                        position: "absolute",
+                        top: "6px",
+                        right: "5px",
+                        padding: "2px 8px",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        color: "#000",
+                        backgroundColor: "#fff",
+                        border: "2px solid #7D4AEA",
+                        textAlign: "center",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {formatTime(item.timer)}
+                    </div>
+                  )}
 
                   <div className="nft__item_wrap">
                     <Link to={`/item-details/${item.nftId}`}>

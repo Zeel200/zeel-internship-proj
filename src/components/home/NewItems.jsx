@@ -9,6 +9,7 @@ import "owl.carousel/dist/assets/owl.theme.default.css";
 const NewItems = () => {
   const [newItems, setNewItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [countdowns, setCountdowns] = useState({});
 
   useEffect(() => {
     const fetchNewItems = async () => {
@@ -28,12 +29,49 @@ const NewItems = () => {
     fetchNewItems();
   }, []);
 
+  useEffect(() => {
+    if (newItems.length === 0) return;
+
+    const updateCountdowns = () => {
+      const now = new Date().getTime();
+      const newCountdowns = {};
+
+      newItems.forEach((item) => {
+        if (item.expiryDate) {
+          const targetTime = new Date(item.expiryDate).getTime();
+          const timeLeft = targetTime - now;
+
+          if (timeLeft > 0) {
+            const hours = Math.floor(timeLeft / (1000 * 60 * 60))
+              .toString()
+              .padStart(2, "0");
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60))
+              .toString()
+              .padStart(2, "0");
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000)
+              .toString()
+              .padStart(2, "0");
+
+            newCountdowns[item.nftId] = `${hours}:${minutes}:${seconds}`;
+          } else {
+            newCountdowns[item.nftId] = "00:00:00";
+          }
+        }
+      });
+
+      setCountdowns(newCountdowns);
+    };
+
+    const interval = setInterval(updateCountdowns, 1000);
+    return () => clearInterval(interval);
+  }, [newItems]);
+
   const carouselOptions = {
     items: 4,
     nav: true,
     dots: true,
-    autoplay: false, // Disable auto-scroll
-    loop: true, // Enable looping
+    autoplay: true,
+    loop: false,
     margin: 10,
     responsive: {
       0: { items: 1 },
@@ -56,25 +94,14 @@ const NewItems = () => {
             {loading ? (
               <div className="row">
                 {new Array(4).fill(0).map((_, index) => (
-                  <div
-                    className="col-lg-3 col-md-6 col-sm-6 col-xs-12"
-                    key={index}
-                  >
+                  <div className="col-lg-3 col-md-6 col-sm-6 col-xs-12" key={index}>
                     <div className="nft__item">
-                      {/* Author Skeleton */}
                       <div className="author_list_pp">
-                        <Skeleton
-                          circle={true}
-                          height={50}
-                          width={50}
-                          style={{ marginBottom: "10px" }}
-                        />
+                        <Skeleton circle={true} height={50} width={50} style={{ marginBottom: "10px" }} />
                       </div>
-                      {/* Item Image Skeleton */}
                       <div className="nft__item_wrap">
                         <Skeleton height={200} />
                       </div>
-                      {/* Info Skeleton */}
                       <div className="nft__item_info">
                         <Skeleton width="60%" />
                         <Skeleton width="40%" />
@@ -83,12 +110,14 @@ const NewItems = () => {
                   </div>
                 ))}
               </div>
-            ) : (
-              <OwlCarousel className="owl-theme" {...carouselOptions}>
-                {newItems.map((item, index) => (
-                  <div className="item" key={item.nftId || index}>
+            ) : newItems.length > 0 ? (
+              <OwlCarousel className="owl-theme" {...carouselOptions} key={newItems.length}>
+                {newItems.map((item) => (
+                  <div className="item" key={item.nftId}>
                     <div className="nft__item">
-                      {/* Author */}
+                      {item.expiryDate && (
+                        <div className="de_countdown">{countdowns[item.nftId] || "00:00:00"}</div>
+                      )}
                       <div className="author_list_pp">
                         <Link
                           to={`/author/${item.authorId}`}
@@ -96,28 +125,18 @@ const NewItems = () => {
                           data-bs-placement="top"
                           title={`Creator: ${item.authorName}`}
                         >
-                          <img
-                            className="lazy"
-                            src={item.authorImage}
-                            alt={item.authorName}
-                          />
+                          <img className="lazy" src={item.authorImage} alt={item.authorName} />
                           <i className="fa fa-check"></i>
                         </Link>
                       </div>
-                      {/* Item Image */}
                       <div className="nft__item_wrap">
                         <Link to={`/item-details/${item.nftId}`}>
-                          <img
-                            src={item.nftImage}
-                            className="lazy nft__item_preview"
-                            alt={item.name}
-                          />
+                          <img src={item.nftImage} className="lazy nft__item_preview" alt={item.title} />
                         </Link>
                       </div>
-                      {/* Info */}
                       <div className="nft__item_info">
                         <Link to={`/item-details/${item.nftId}`}>
-                          <h4>{item.name}</h4>
+                          <h4>{item.title}</h4>
                         </Link>
                         <div className="nft__item_price">{item.price} ETH</div>
                         <div className="nft__item_like">
@@ -129,6 +148,8 @@ const NewItems = () => {
                   </div>
                 ))}
               </OwlCarousel>
+            ) : (
+              <p className="text-center">No new items available.</p>
             )}
           </div>
         </div>

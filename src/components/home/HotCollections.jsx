@@ -125,9 +125,9 @@ const HotCollections = () => {
                       </div>
                       <div className="nft_coll_info">
                         <Link to="/explore">
-                          <h4>{collection.name}</h4>
+                          <h4>{collection.title}</h4>
                         </Link>
-                        <span>{collection.code}</span>
+                        <span>ERC-{collection.code}</span>
                       </div>
                     </div>
                   </div>
@@ -142,4 +142,3 @@ const HotCollections = () => {
 };
 
 export default HotCollections;
-
