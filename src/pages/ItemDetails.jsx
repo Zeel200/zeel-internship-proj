@@ -100,7 +100,7 @@ const ItemDetails = () => {
                   <div className="d-flex flex-column">
                     <div className="mr40">
                       <h6>Owner</h6>
-                      <div className="item_author">
+                      <div className="item_author pb-5">
                         <div className="author_list_pp">
                           <Link to={`/author/${itemData.ownerId}`}>
                             <img className="lazy" src={itemData.ownerImage} alt="" />
@@ -114,7 +114,7 @@ const ItemDetails = () => {
                     </div>
                     <div className="mr40">
                       <h6>Creator</h6>
-                      <div className="item_author">
+                      <div className="item_author pb-4">
                         <div className="author_list_pp">
                           <Link to={`/author/${itemData.creatorId}`}>
                             <img className="lazy" src={itemData.creatorImage} alt="" />
