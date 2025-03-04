@@ -46,15 +46,22 @@ const ItemDetails = () => {
                       <Skeleton width={80} />
                     </div>
                     <p><Skeleton count={3} /></p>
-                    <div className="d-flex flex-row">
+                    <div className="d-flex flex-column">
                       <div className="mr40">
                         <h6>Owner</h6>
                         <Skeleton circle={true} height={50} width={50} />
                         <Skeleton width={100} />
                       </div>
+                      <div className="mr40">
+                        <h6>Creator</h6>
+                        <Skeleton circle={true} height={50} width={50} />
+                        <Skeleton width={100} />
+                      </div>
+                      <div className="mt-3">
+                        <h6>Price</h6>
+                        <Skeleton width={80} />
+                      </div>
                     </div>
-                    <h6>Price</h6>
-                    <Skeleton width={80} />
                   </div>
                 </div>
               </div>
@@ -64,7 +71,6 @@ const ItemDetails = () => {
       </div>
     );
   }
-
   return (
     <div id="wrapper">
       <div className="no-bottom no-top" id="content">
@@ -91,7 +97,7 @@ const ItemDetails = () => {
                     </div>
                   </div>
                   <p>{itemData.description}</p>
-                  <div className="d-flex flex-row">
+                  <div className="d-flex flex-column">
                     <div className="mr40">
                       <h6>Owner</h6>
                       <div className="item_author">
@@ -106,11 +112,27 @@ const ItemDetails = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <h6>Price</h6>
-                  <div className="nft-item-price">
-                    <img src={EthImage} alt="" />
-                    <span>{itemData.price}</span>
+                    <div className="mr40">
+                      <h6>Creator</h6>
+                      <div className="item_author">
+                        <div className="author_list_pp">
+                          <Link to={`/author/${itemData.creatorId}`}>
+                            <img className="lazy" src={itemData.creatorImage} alt="" />
+                            <i className="fa fa-check"></i>
+                          </Link>
+                        </div>
+                        <div className="author_list_info">
+                          <Link to={`/author/${itemData.creatorId}`}>{itemData.creatorName}</Link>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <h6>Price</h6>
+                      <div className="nft-item-price">
+                        <img src={EthImage} alt="" />
+                        <span>{itemData.price}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
