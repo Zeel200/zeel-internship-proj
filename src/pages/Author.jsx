@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 const Author = () => {
   const { authorId } = useParams();
   const [authorData, setAuthorData] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     const fetchAuthorData = async () => {
@@ -14,7 +15,6 @@ const Author = () => {
         const response = await fetch(
           `https://us-central1-nft-cloud-functions.cloudfunctions.net/authors?author=${authorId}`
         );
-
         const data = await response.json();
         setAuthorData(data);
       } catch (error) {
@@ -24,6 +24,16 @@ const Author = () => {
 
     fetchAuthorData();
   }, [authorId]);
+
+  const handleFollow = () => {
+    if (!authorData) return;
+
+    setIsFollowing(!isFollowing);
+    setAuthorData((prev) => ({
+      ...prev,
+      followers: prev.followers + (isFollowing ? -1 : 1),
+    }));
+  };
 
   if (!authorData) return <div>Loading...</div>;
 
@@ -67,9 +77,9 @@ const Author = () => {
                   <div className="profile_follow de-flex">
                     <div className="de-flex-col">
                       <div className="profile_follower">{authorData.followers} followers</div>
-                      <Link to="#" className="btn-main">
-                        Follow
-                      </Link>
+                      <button className="btn-main" onClick={handleFollow}>
+                        {isFollowing ? "Unfollow" : "Follow"}
+                      </button>
                     </div>
                   </div>
                 </div>
